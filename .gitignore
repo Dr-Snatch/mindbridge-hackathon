@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/cache/
+.yarn/install-state.gz
+
+# Build output
+dist/
+build/
+out/
+.next/
+.expo/
+.expo-shared/
+.turbo/
+*.tsbuildinfo
+
+# Environment / secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+credentials/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Native / mobile
+ios/Pods/
+android/.gradle/
+android/app/build/
+android/build/
+
+# Claude Code machine-local overrides
+.claude/settings.local.json
+
+# Obsidian — vaults belong in Obsidian Sync, not in git
+Hackerthon 1/
+**/.obsidian/workspace.json
+**/.obsidian/workspace-mobile.json
+**/.obsidian/cache/
