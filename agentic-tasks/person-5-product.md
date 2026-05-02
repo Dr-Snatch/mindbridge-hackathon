@@ -1,99 +1,248 @@
 # Person 5 — Product & Pitch Lead (Role E)
 
-You own **coordination, the vault, the demo, and the story**. You unblock everyone, manage the task board, write the pitch deck, and make sure the 90-second demo is flawless. You go first — nothing else starts until you've set up the vault and published the API contract.
+**Your job in one sentence:** Make sure the team never gets stuck, the demo works end-to-end by H+44, and the judges understand why MindBridge matters.
 
-## Setup
+---
 
-- `MB_ROLE=E` — unrestricted write access everywhere
-- Your tools: Obsidian vault, Claude Code, GitHub, `scripts/sync.sh`
-- You are the only person who edits: `10-spec/`, `00-meta/people.md`, root configs, `README.md`, `agentic-tasks/`
+## What you own
+- `10-spec/` in the vault — API contract, data model, demo script, pitch deck outline
+- `00-meta/` in the vault — who's who, role assignments
+- `20-tasks/` in the vault — the task board (you seed it, everyone else uses it)
+- `30-decisions/`, `40-handoffs/`, `50-flags/` — coordination infrastructure
+- Root repo files: `README.md`, `agentic-tasks/`, `docs/`, root configs, `pnpm-lock.yaml`
+- Railway and Vercel accounts + the ANTHROPIC_API_KEY
 
-Before any task: `/claim <task-id>`. After: `/handoff <task-id>`.
+## What you do NOT own
+- Application code in `apps/` — that's Persons 1, 2, 3
+- Component specs and UX flows — Person 4 writes those in `10-spec/`
+- The AI library — Person 2 owns that
 
-## Your first 2 hours (everyone is blocked until you finish these)
+**But you can read and edit anything.** MB_ROLE=E means unrestricted. Use this power for unblocking, not for "improving" other people's work without asking.
 
-### E0 — Obsidian Sync infrastructure
-Create a remote vault called `mindbridge` on Obsidian Sync. Set a strong E2EE password. Save the password in the team password manager. Invite all 4 teammates by email. **Done when:** you see `mindbridge` in your Available Remote Vaults.
+---
 
-### E1 — Vault bootstrap
-Create the folder structure in `~/Obsidian/MindBridge-Vault/`:
+## Setup (do this first — everyone else is blocked until you do)
+
 ```
-00-meta/people.md        ← who's who, MB_ROLE assignments
-10-spec/                 ← API contract, data model, brand guidelines (Person 4 fills this)
-20-tasks/                ← task files (you seed these in E5)
-30-decisions/            ← ADRs (append-only)
-40-handoffs/             ← sync notes
-50-flags/                ← blockers and urgent issues
-.claude/                 ← shared slash commands
+MB_ROLE=E
+MB_VAULT=~/Obsidian/MindBridge-Vault
+MB_REPO=~/mindbridge
 ```
-**Done when:** all teammates see this structure when they connect.
 
-### E2 — Repo bootstrap
-Create the monorepo skeleton (Person 1 will fill it): `pnpm-workspace.yaml`, root `package.json`, `tsconfig.base.json`, empty `apps/` and `packages/` directories, `docker-compose.yml` for local Postgres + Redis. **Done when:** `pnpm install` works from root.
+1. Install Obsidian from obsidian.md. Create an account if you don't have one.
+2. Create a new remote vault: Settings → Sync → Create new vault → name it `mindbridge` → set a strong E2EE password → **save this password in a team password manager immediately** (if you lose it, the vault is unrecoverable)
+3. Invite all 4 teammates by the email addresses you have for them
+4. Set up the local vault at `~/Obsidian/MindBridge-Vault`
+5. Add env vars to `~/.claude/settings.json` under `"env"`
+6. Write `40-handoffs/<today>-E.md` — "vault up at HH:MM, invites sent"
 
-### E3 — API contract (blocking everyone)
-Write `10-spec/api-contract.md` with every endpoint, method, request body, and response shape from `docs/app-architecture.md §8`. This is what Persons 1, 3, and 4 build against. **Done when:** you've reviewed it with Person 1 and it's published to the vault.
+---
 
-### E4 — Shared `.claude/` config
-Vault `.claude/` with slash command stubs: `/claim`, `/handoff`, `/blocked`, `/board`, `/standup`. These can be simple Bash scripts or Claude Code custom commands. **Done when:** any teammate can run `/board` and see the task list.
+## Your first 2 hours — everyone is blocked until these are done
 
-### E5 — Seed task files (20 tasks minimum)
-Create `20-tasks/T-001.md` through `T-020.md` (and more if needed) covering the full demo path. Assign each to a role. Each file needs: `id`, `title`, `owner`, `status`, `priority`, `demo_path`. **Done when:** `/board` shows a populated task list everyone can claim from.
+### E0 — Vault folder structure
+In `~/Obsidian/MindBridge-Vault`, create:
+```
+00-meta/
+  people.md      ← MB_ROLE assignments and team contact info
+10-spec/         ← API contract, data model, brand guidelines (Person 4 fills in), demo script
+20-tasks/        ← you'll seed task files here in E5
+30-decisions/    ← ADRs, append-only
+40-handoffs/     ← end-of-shift notes, sync confirmations
+50-flags/        ← blockers, urgent issues, decisions needed
+.claude/         ← shared slash commands
+```
+**Done when:** you've confirmed at least 2 teammates can see this structure after connecting.
 
-## Ongoing (every 2 hours for the full 48h)
+### E1 — Repo bootstrap
+In the GitHub repo, create the skeleton structure that Person 1 will flesh out:
+- `pnpm-workspace.yaml` (list `apps/*` and `packages/*`)
+- Root `package.json` with scripts: `dev:api`, `dev:dashboard`, `dev:mobile`, `build`, `db:migrate`, `db:seed`
+- `tsconfig.base.json` (ES2022, NodeNext, strict: true)
+- Empty directories: `apps/api/`, `apps/ai/`, `apps/mobile/`, `apps/dashboard/`, `packages/types/`
+- `docker-compose.yml` — Postgres on 5432, Redis on 6379 (for local development)
 
-### E6 — Triage loop
-Read all files in `50-flags/`. Apply the rubric in order:
-1. Cut the feature (not on demo path? drop it)
-2. Mock the dependency (can they use hardcoded data for now?)
-3. Reassign (someone has bandwidth; someone is stuck)
-4. Escalate (decision needed from the whole team)
+Commit and push. **Done when:** `pnpm install` works from root. Write `40-handoffs/<today>-E.md`.
 
-Write your triage response in the same flag file. Ping the team chat if critical.
+### E2 — API contract (this is the most blocking task)
+File: `10-spec/api-contract.md`
 
-### E7 — Schedule checkpoint
-At each checkpoint (H+10, H+18, H+28, H+34, H+40), run `shared-demo-validator` or manually test the demo steps that should be working. If a checkpoint fails, triage immediately — don't wait until the next cycle.
+Copy every endpoint from `docs/app-architecture.md §8` into a structured document. For each endpoint include:
+- Method + path
+- Auth: `X-Patient-Id` or `X-Therapist-Id` header
+- Request body (with types)
+- Response shape (with types)
+- Notes (e.g. "returns SSE stream", "internal endpoint called by apps/ai")
 
-## Later tasks
+Review it with Person 1 before marking done — they will implement this exactly.
 
-### E8 — Staging infra
-Set up Railway (Postgres + Redis + API service) and Vercel (dashboard). Share URLs with the team. Set ANTHROPIC_API_KEY with a hard usage cap (e.g. $20). **Done when:** `curl https://<railway>/health` returns 200.
+**Done when:** Person 1 confirms they have what they need to start A4. This is the single most important document you'll produce.
 
-### E9 — Demo data
-Coordinate with Person 1 to run `prisma db seed` on staging. Verify the demo story loads correctly: Alex's mood arc, the crisis conversation, the urgent flag, the existing coping plan. **Done when:** dashboard opens on compelling data on first load.
+### E3 — Slash commands
+In the vault's `.claude/` folder, create simple slash command scripts:
+- `/board` — lists all task files in `20-tasks/` with their `status` field
+- `/claim T-XXX` — sets `status: in_progress` and `owner: [role]` in the task file
+- `/handoff T-XXX` — sets `status: done`, prompts for notes
+- `/blocked T-XXX <reason>` — sets `status: blocked`, creates a `50-flags/` entry
+- `/standup` — calls the `shared-standup` agent
 
-### E10 — Demo script
-Write the 90-second demo narration to `10-spec/demo-script.md`. Rehearse it with the team. Time it. Adjust. Every word should be deliberate. **Done when:** any team member can narrate the demo without notes.
+These can be shell scripts or Claude Code custom commands. **Done when:** any teammate can run `/board` and see tasks.
 
-### E11 — Pitch deck
-Write the 5-slide pitch structure (problem, solution, demo, safety, team) to `10-spec/pitch-deck.md`. Coordinate with Person 4 on visuals. **Done when:** slides are ready by H+44.
+### E4 — Seed task files
+Create at least 20 task files in `20-tasks/`. Name them `T-001.md` through `T-020.md`. Assign each to a role (A, B, C, D, or E). Map directly to the task queues in each person's brief.
 
-### E12 — Recorded backup video
-Record a clean run of all 5 demo steps on staging. This is non-negotiable — if anything breaks during the live demo, you play the video. Record at H+44 when everything is working. **Done when:** video is saved and backed up.
+Template for each file:
+```markdown
+---
+id: T-001
+title: Monorepo bootstrap
+owner: A
+status: unassigned
+priority: must
+demo_path: false
+---
 
-### E13 — Submit
-Final submission by H+48. Confirm repo is public, README is clear, staging URLs are live, video is uploaded. **Done when:** submitted.
+Brief description of the task. Link to the relevant section of the person's brief.
+```
 
-## Cut order (enforce this)
+**Done when:** `/board` shows a populated list covering all 5 demo steps.
 
-1. Activity tracking (step counts)
+---
+
+## Ongoing every 2 hours
+
+### E-triage — Review `50-flags/` and unblock the team
+
+Read every new file in `50-flags/`. Apply this rubric in order, stop when you find an answer:
+
+1. **Cut it** — is this task on the demo path? If not, mark it `status: cut` and move on.
+2. **Mock it** — can they use hardcoded data or a stub while they wait? Write the mock spec for them.
+3. **Reassign** — is someone blocked waiting on another person? Does the owner have bandwidth right now?
+4. **Decide** — does this need a team decision? Write it up clearly and make a call (you have authority to make product decisions during the hackathon).
+5. **Escalate** — is this a fundamental technical problem? Ping the team chat immediately.
+
+Write your triage response in the flag file. Flag as resolved or escalated. Move on.
+
+### E-checkpoint — Check schedule at each milestone
+
+| Time | What should be working |
+|------|----------------------|
+| H+2 | API contract published, vault up, repo scaffold done |
+| H+10 | POST /checkin works, mobile check-in submits |
+| H+18 | Mood check-in end-to-end: mobile → DB → dashboard chart |
+| H+28 | Real AI conversation: patient sends message → Claude replies |
+| H+34 | Coping plans round-trip: therapist writes plan → appears in AI reply |
+| H+40 | Crisis path complete: crisis message → canned reply + urgent banner |
+| H+44 | Full 5-step demo on staging, with seed data |
+
+At each checkpoint: run `shared-demo-validator` or manually test the steps that should work. If a checkpoint fails, triage immediately. Write the result in `40-handoffs/<today>-E.md`.
+
+---
+
+## Later tasks (H+10 onward)
+
+### E5 — Staging infrastructure
+- Railway: create account (or use existing), set up Postgres service, Redis service, API service. Set env vars: `ANTHROPIC_API_KEY` (set a hard spend cap — $20 maximum), `NODE_ENV=production`, `CORS_ORIGIN` (Vercel URL).
+- Vercel: deploy the dashboard. Set `VITE_API_URL` to the Railway URL.
+- Share both URLs in `40-handoffs/<today>-E.md` so the whole team can test on staging.
+
+**Done when:** `curl https://<railway>/health` returns 200 AND `https://<vercel>/` loads the dashboard.
+
+### E6 — Demo data on staging
+After Person 1 ships A9 (seed data), run `pnpm db:seed` against the Railway database. Verify: open the dashboard and see Alex's mood arc, the urgent crisis flag, the conversation summary, the coping plan. This is what judges will see.
+
+**Done when:** the dashboard tells Alex's story on first load.
+
+### E7 — Demo script
+File: `10-spec/demo-script.md`
+
+Write the exact narration for the 90-second live demo. Every sentence deliberate. Format:
+```
+[ACTION: what you click/type]
+"Narration you say out loud"
+[Expected result: what should appear]
+```
+
+Cover all 5 demo steps. Time it (aim for 80–90 seconds). Rehearse with the team. Adjust.
+
+**Done when:** any team member can narrate the demo from memory in under 90 seconds.
+
+### E8 — Pitch deck
+File: `10-spec/pitch-deck.md`
+
+5 slides (3-minute presentation):
+1. The problem — "167 hours of darkness" (30s)
+2. The solution — side-by-side: app + dashboard (30s)
+3. [Live demo] — use the actual product (60–90s)
+4. Safety — deterministic crisis path, 6 layers, never diagnoses (20s)
+5. Team (10s)
+
+Coordinate with Person 4 on the visual style. The `design-pitch` agent has a full script template.
+
+**Done when:** slides are ready by H+44.
+
+### E9 — Recorded backup video
+Record a clean run of all 5 demo steps on staging. This is not optional — if the live demo breaks, you play this video.
+
+Timing: record at H+44 when everything is confirmed working. Record again if something changes.
+
+**Done when:** video is saved, backed up in at least 2 places, and you've watched it back to confirm it's usable.
+
+### E10 — Submit
+- Confirm repo is public on GitHub
+- README has the staging URLs and setup instructions
+- Submission form completed
+- Video uploaded/linked
+
+**Done when:** submitted by H+48.
+
+---
+
+## Your decision authority
+
+You have authority to make these decisions alone without a team vote:
+- Which features to cut (apply the cut order)
+- Task assignment and reassignment
+- Whether a mock/stub is acceptable
+- Demo data choices
+- Submission timing
+
+Bring these to the team before deciding:
+- Cutting anything on the demo path
+- Changing the API contract after H+4
+- Spending above the $20 API key cap
+- Any decision that affects safety (crisis path, consent, disclaimers)
+
+---
+
+## Cut order (you enforce this, no debate)
+
+When the team is behind, cut in this order. Never reverse a cut.
+
+1. Activity tracking (step counts, ActivityLog, ActivitySharingPreference)
 2. Medication reminders
-3. Push notifications
-4. Real JWT auth (keep mock headers)
-5. Streaming SSE
-6. Embedding-based coping retrieval
-7. Output post-flight safety scan (L5)
-8. Every-10-turns summarisation
+3. Push notifications (FCM)
+4. Real JWT auth — keep mock `X-Patient-Id` headers
+5. Streaming SSE — non-streaming JSON reply is fine
+6. Embedding-based coping plan retrieval — LIKE-match is fine
+7. Output post-flight safety scan (Layer 5)
+8. Every-10-turns summarisation — end-of-conversation only is fine
 9. Nightly theme extractor
+
+**Never cut:** the 5 demo path steps. The recorded backup video. The disclaimer banner. The crisis path.
+
+---
 
 ## Hard rules
 
-- You hold the ANTHROPIC_API_KEY. Set a hard cap before sharing with the team.
-- You are the only one who edits `10-spec/` and `00-meta/` — removes all conflict surface from the vault.
-- The recorded backup video is non-negotiable. Start recording at H+44 even if something's still slightly rough.
-- Demo on staging (not localhost) by H+44 — give yourself 4 hours of buffer.
-- Triage every 2 hours. Write a standup note even if nothing changed.
+- Hold the ANTHROPIC_API_KEY. Set a hard usage cap (Railway env var `ANTHROPIC_MAX_SPEND=20`). Never share the raw key in Slack or chat.
+- You are the only person who edits `10-spec/` (except brand guidelines which Person 4 fills in) and `00-meta/`. This prevents vault conflicts.
+- Recorded backup video: non-negotiable. Record it at H+44.
+- Demo on staging, not localhost, by H+44.
+- Triage every 2 hours. Write a `40-handoffs/<today>-E.md` note even if nothing changed — the team needs to know you're watching.
+
+---
 
 ## Useful agents
 
-`e-task-triage` · `e-demo-rehearser` · `e-seed-generator` · `e-monorepo` · `design-pitch` · `shared-standup` · `shared-advisor`
+`e-task-triage` · `e-demo-rehearser` · `e-seed-generator` · `e-monorepo` · `design-pitch` · `shared-standup` · `shared-demo-validator` · `shared-advisor`
