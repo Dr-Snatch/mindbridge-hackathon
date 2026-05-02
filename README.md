@@ -29,17 +29,17 @@ That's the whole demo. ~90 seconds. Anything else is gravy.
 
 ## The team — 5 roles
 
-We're matching humans to roles based on skill, not assigning by name. If you're not sure which role suits you, ask in the team chat.
+3 technical roles, 2 non-technical. Match people to roles by skill. Your detailed brief is in [`agentic-tasks/`](agentic-tasks/).
 
-| Role | What you own | Stack |
+| Role | What you own | Technical? |
 |---|---|---|
-| **A — Backend / API** | The Express + Prisma + Postgres API that everything talks to. You own the endpoints other people consume. | Node 20, Express, Prisma, Postgres |
-| **B — AI / Patterns** | The library that handles conversations, pattern detection, crisis safety, and summarising. The "brain." | TypeScript, Anthropic SDK |
-| **C — Patient Mobile** | The patient-facing mobile app — check-in, chat, crisis modal. The app judges see first. | Expo (React Native), NativeWind |
-| **D — Therapist Dashboard** | The web dashboard — mood charts, conversation summaries, coping plan editor. The "wow" reveal. | Vite, React, Tailwind, Recharts |
-| **E — Coordinator / Integrator** | Glue, infrastructure, deployment, vault triage, demo. Unblocks everyone else. | Whatever it takes |
+| **A — Fullstack Lead** | Express API, Prisma schema, Postgres DB, Railway deployment, monorepo setup, shared types | ✅ Technical |
+| **B — AI Engineer** | The AI library — conversations, crisis detection, pattern recognition, coping plan injection, summarisation | ✅ Technical |
+| **C — Frontend Engineer** | Both apps — patient mobile (Expo/React Native) AND therapist dashboard (Vite/React) | ✅ Technical |
+| **D — Brand & UX Designer** | Visual identity, colour palette, typography, UX flows, component specs, UI copy, accessibility review | 🎨 Non-technical |
+| **E — Product & Pitch Lead** | Coordination, vault management, API contract, demo script, pitch deck, recorded backup video, submission | 🎯 Non-technical |
 
-Your detailed task queue is in [`agentic-tasks/person-N-*.md`](agentic-tasks/) — one file per role. Read your file before doing anything else.
+**Critical ordering:** Person E goes first (vault + API contract). Then A and B in parallel. Then C (needs A's endpoints). D starts immediately and produces specs for C to implement.
 
 ---
 
@@ -86,6 +86,56 @@ MindBridge-Vault/
 4. **Disclaimer banner stays visible** on every screen with AI content. Non-negotiable.
 5. **The crisis path never waits on an LLM.** Lexicon-only on the hot path.
 6. **Cut features, not quality.** A janky end-to-end demo beats four polished features that don't connect.
+7. **Stay in your folder.** Each role owns one subtree (table below). The `role-fence` hook will physically block Edits and Writes outside your folder — if you hit it, that's a signal to use the vault instead.
+
+---
+
+## Working alongside 4 other Claude Code sessions
+
+5 sessions editing the same repo in parallel can wreck `main` fast — Claude tends to "tidy up" adjacent code without being asked, and overlapping edits become merge fights. Two rails keep this from happening.
+
+### Rail 1 — file ownership, enforced by a hook
+
+Each role owns a distinct subtree of the repo. The `PreToolUse` hook at [`.claude/hooks/role-fence.py`](.claude/hooks/role-fence.py) reads your `MB_ROLE` env var and blocks any Edit / Write / MultiEdit outside your folder.
+
+| Role | Owns (writable) |
+|---|---|
+| **A — Fullstack** | `apps/api/`, `packages/types/`, `prisma/` |
+| **B — AI Engineer** | `apps/ai/` |
+| **C — Frontend** | `apps/mobile/`, `apps/dashboard/` |
+| **D — Designer** | `packages/design-tokens/` (specs live in vault, not repo) |
+| **E — Product Lead** | everywhere (docs, root configs, lockfile, README, agentic-tasks) |
+
+Everyone can **read** anywhere. Only writes are fenced.
+
+If you genuinely need a change outside your folder (e.g. Person 1 needs Person 5 to add a workspace package), open a vault task `20-tasks/T-XXX-<reason>.md` assigned to the file's owner. Don't try to bypass the hook — it's there because we can't review 5 streams of Claude output by eye.
+
+### Rail 2 — sync discipline
+
+Run [`bash scripts/sync.sh`](scripts/sync.sh) every 20–30 min, and whenever you finish a task. It does the right thing: stash, `git pull --rebase`, restore your work, push.
+
+```
+small + frequent syncs   →   small fixable conflicts
+hoarding hours of work   →   merge disasters at hour 24
+```
+
+If `sync.sh` reports a real conflict, don't panic: resolve the file(s), `git add` them, `git rebase --continue`, then re-run the script. The conflict surface is small because of Rail 1.
+
+### Single-owner hot files
+
+A few files everyone wants to touch. Exactly one person can write each; the rest open a vault task to ask:
+
+| File | Owner |
+|---|---|
+| `pnpm-lock.yaml`, root `package.json` | E |
+| `packages/types/src/*` | A (everyone reads, only A writes) |
+| `prisma/schema.prisma` | A |
+| `docs/*`, `README.md`, `agentic-tasks/*` | E |
+| `.claude/*` (hooks, shared settings) | E |
+
+### Why no pull requests?
+
+For a 48-hour hackathon, PR ceremony is overhead. The two rails above replace what PR review would have caught: out-of-domain edits and unsynced branches. Push directly to `main`. If something breaks the build, fix forward — `git revert` is your rollback button.
 
 ---
 
